@@ -58,5 +58,5 @@ The final message is emitted inside a single fenced code block so the user copie
 
 ## More Information
 
-* Eval evidence: `eval-workspaces/pr-review-request/iteration-1/` and `iteration-2/` (local only, see ADR-0003); baseline runs scored 61–62% on formatting assertions, with-skill runs 100%.
+* Eval evidence: `pr-review-request-workspace/iteration-1/` and `iteration-2/` (local only, see ADR-0003); baseline runs scored 61–62% on formatting assertions, with-skill runs 100%.
 * Related: ADR-0002 (naming), ADR-0005 (eval workflow)
