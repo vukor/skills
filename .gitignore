@@ -1,0 +1,14 @@
+# Eval run artifacts contain real data from the author's accounts (ADR-0003, ADR-0005)
+*-workspace/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# Packaged skills
+*.skill
