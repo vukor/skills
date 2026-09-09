@@ -3,69 +3,256 @@
   "evals": [
     {
       "id": 1,
+      "slug": "team-review-message",
       "prompt": "Look at my open github pull requests and write a message to my team to review them",
       "expected_output": "A plain-text message with PRs grouped by repo, each entry showing ticket + clean title + URL, with the repo name as a section header and a short friendly opening line",
       "files": [],
       "expectations": [
-        "Message starts with a short friendly greeting (Hi team or similar)",
-        "PRs are grouped under repository name headers",
-        "Each PR entry shows a ticket key (e.g. PROJ-1234) followed by a clean title when a ticket exists",
-        "Each PR entry includes the GitHub PR URL on its own line",
-        "A blank line separates individual PR entries within each repo group",
-        "No PR numbers like #3846 appear in the output",
-        "No inline descriptions or summaries appear below titles",
-        "No emoji appear anywhere in the output",
-        "No Markdown syntax (bold, headings, link brackets) appears in the output",
-        "Draft PRs are excluded",
-        "No conventional-commit prefix (fix:, chore:, feat:) remains in any title"
+        {
+          "text": "Message starts with a short friendly greeting (Hi team or similar)",
+          "check": "regex",
+          "scope": "first_line",
+          "pattern": "\\b(hi|hello|hey|greetings|team)\\b",
+          "flags": ["i"]
+        },
+        {
+          "text": "PRs are grouped under repository name headers",
+          "check": "line_sequence",
+          "after": "^[A-Za-z0-9][A-Za-z0-9._/-]*$",
+          "next": "^\\s*-\\s",
+          "mode": "any"
+        },
+        {
+          "text": "Each PR entry shows a ticket key (e.g. PROJ-1234) followed by a clean title when a ticket exists",
+          "check": "line_pattern",
+          "select": "^\\s*-\\s",
+          "not_match": "\\b(fix|feat|chore|docs|refactor|test|style|ci|build|perf|revert)(\\([^)]+\\))?:"
+        },
+        {
+          "text": "Each PR entry includes the GitHub PR URL on its own line",
+          "check": "line_pattern",
+          "select": "https?://",
+          "match": "^\\s*https?://\\S+\\s*$"
+        },
+        {
+          "text": "A blank line separates individual PR entries within each repo group",
+          "check": "line_sequence",
+          "after": "^\\s*https?://\\S+\\s*$",
+          "next_not": "^\\s*-\\s"
+        },
+        {
+          "text": "No PR numbers like #3846 appear in the output",
+          "check": "no_regex",
+          "pattern": "#\\d{2,}"
+        },
+        {
+          "text": "No inline descriptions or summaries appear below titles",
+          "check": "line_sequence",
+          "after": "^\\s*-\\s",
+          "next": "^\\s*(https?://|-\\s|$)"
+        },
+        {
+          "text": "No emoji appear anywhere in the output",
+          "check": "no_regex",
+          "pattern": "preset:emoji"
+        },
+        {
+          "text": "No Markdown syntax (bold, headings, link brackets) appears in the output",
+          "check": "no_regex",
+          "pattern": "preset:markdown"
+        },
+        {
+          "text": "Draft PRs are excluded",
+          "check": "json_values_absent",
+          "file": "raw_gh.json",
+          "where": {"isDraft": true},
+          "field": "url"
+        },
+        {
+          "text": "No conventional-commit prefix (fix:, chore:, feat:) remains in any title",
+          "check": "no_regex",
+          "pattern": "\\b(fix|feat|chore|docs|refactor|test|style|ci|build|perf|revert)(\\([^)]+\\))?:"
+        }
       ]
     },
     {
       "id": 2,
+      "slug": "url-provided",
       "prompt": "write a message asking the team to review my prs - https://github.com/pulls/authored",
       "expected_output": "Same format as eval 1: clean grouped plain-text message ready to paste into any messenger",
       "files": [],
       "expectations": [
-        "Message starts with a short friendly greeting",
-        "PRs are grouped under repository name headers",
-        "Each PR has a ticket + clean title + URL",
-        "A blank line separates individual PR entries within each repo group",
-        "No PR numbers appear",
-        "No descriptions appear below titles",
-        "No emoji or decorative divider lines appear",
-        "Draft PRs are excluded"
+        {
+          "text": "Message starts with a short friendly greeting",
+          "check": "regex",
+          "scope": "first_line",
+          "pattern": "\\b(hi|hello|hey|greetings|team)\\b",
+          "flags": ["i"]
+        },
+        {
+          "text": "PRs are grouped under repository name headers",
+          "check": "line_sequence",
+          "after": "^[A-Za-z0-9][A-Za-z0-9._/-]*$",
+          "next": "^\\s*-\\s",
+          "mode": "any"
+        },
+        {
+          "text": "Each PR has a ticket + clean title + URL",
+          "check": "all_of",
+          "checks": [
+            {
+              "check": "line_pattern",
+              "select": "^\\s*-\\s",
+              "not_match": "\\b(fix|feat|chore|docs|refactor|test|style|ci|build|perf|revert)(\\([^)]+\\))?:"
+            },
+            {
+              "check": "line_sequence",
+              "after": "^\\s*-\\s",
+              "next": "^\\s*https?://"
+            }
+          ]
+        },
+        {
+          "text": "A blank line separates individual PR entries within each repo group",
+          "check": "line_sequence",
+          "after": "^\\s*https?://\\S+\\s*$",
+          "next_not": "^\\s*-\\s"
+        },
+        {
+          "text": "No PR numbers appear",
+          "check": "no_regex",
+          "pattern": "#\\d{2,}"
+        },
+        {
+          "text": "No descriptions appear below titles",
+          "check": "line_sequence",
+          "after": "^\\s*-\\s",
+          "next": "^\\s*(https?://|-\\s|$)"
+        },
+        {
+          "text": "No emoji or decorative divider lines appear",
+          "check": "no_regex",
+          "patterns": ["preset:emoji", "preset:divider"]
+        },
+        {
+          "text": "Draft PRs are excluded",
+          "check": "json_values_absent",
+          "file": "raw_gh.json",
+          "where": {"isDraft": true},
+          "field": "url"
+        }
       ]
     },
     {
       "id": 3,
+      "slug": "teams-paste",
       "prompt": "my team needs to review my open PRs, can you get them from github and format a message I can paste in Teams",
       "expected_output": "A plain-text message grouped by repo with clean titles, ticket keys where available, and URLs, with no chat-tool-specific formatting",
       "files": [],
       "expectations": [
-        "Message starts with a short friendly greeting",
-        "PRs are grouped by repository with the repo name as a header line",
-        "Each entry has the format: hyphen bullet + TICKET: Title on one line, URL indented on the next line",
-        "A blank line separates individual PR entries within each repo group",
-        "No conventional-commit prefixes remain in titles",
-        "No PR numbers appear",
-        "No emoji appear",
-        "Draft PRs are excluded",
-        "Output renders identically in plain text (no Slack- or Teams-specific markup)"
+        {
+          "text": "Message starts with a short friendly greeting",
+          "check": "regex",
+          "scope": "first_line",
+          "pattern": "\\b(hi|hello|hey|greetings|team)\\b",
+          "flags": ["i"]
+        },
+        {
+          "text": "PRs are grouped by repository with the repo name as a header line",
+          "check": "line_sequence",
+          "after": "^[A-Za-z0-9][A-Za-z0-9._/-]*$",
+          "next": "^\\s*-\\s",
+          "mode": "any"
+        },
+        {
+          "text": "Each entry has the format: hyphen bullet + TICKET: Title on one line, URL indented on the next line",
+          "check": "line_sequence",
+          "after": "^- ",
+          "next": "^\\s+https?://\\S+\\s*$"
+        },
+        {
+          "text": "A blank line separates individual PR entries within each repo group",
+          "check": "line_sequence",
+          "after": "^\\s*https?://\\S+\\s*$",
+          "next_not": "^\\s*-\\s"
+        },
+        {
+          "text": "No conventional-commit prefixes remain in titles",
+          "check": "no_regex",
+          "pattern": "\\b(fix|feat|chore|docs|refactor|test|style|ci|build|perf|revert)(\\([^)]+\\))?:"
+        },
+        {
+          "text": "No PR numbers appear",
+          "check": "no_regex",
+          "pattern": "#\\d{2,}"
+        },
+        {
+          "text": "No emoji appear",
+          "check": "no_regex",
+          "pattern": "preset:emoji"
+        },
+        {
+          "text": "Draft PRs are excluded",
+          "check": "json_values_absent",
+          "file": "raw_gh.json",
+          "where": {"isDraft": true},
+          "field": "url"
+        },
+        {
+          "text": "Output renders identically in plain text (no Slack- or Teams-specific markup)",
+          "check": "no_regex",
+          "patterns": ["preset:markdown", "preset:slack_markup"]
+        }
       ]
     },
     {
       "id": 4,
+      "slug": "list-my-open-prs",
       "prompt": "list my open PRs",
       "expected_output": "The same plain-text grouped list, produced without the user mentioning a team or a messenger; the skill should trigger on a plain listing request",
       "files": [],
       "expectations": [
-        "PRs are grouped under repository name headers",
-        "Each PR entry includes the GitHub PR URL on its own line",
-        "A blank line separates individual PR entries within each repo group",
-        "No conventional-commit prefixes remain in titles",
-        "No PR numbers appear",
-        "No emoji appear",
-        "Draft PRs are excluded"
+        {
+          "text": "PRs are grouped under repository name headers",
+          "check": "line_sequence",
+          "after": "^[A-Za-z0-9][A-Za-z0-9._/-]*$",
+          "next": "^\\s*-\\s",
+          "mode": "any"
+        },
+        {
+          "text": "Each PR entry includes the GitHub PR URL on its own line",
+          "check": "line_pattern",
+          "select": "https?://",
+          "match": "^\\s*https?://\\S+\\s*$"
+        },
+        {
+          "text": "A blank line separates individual PR entries within each repo group",
+          "check": "line_sequence",
+          "after": "^\\s*https?://\\S+\\s*$",
+          "next_not": "^\\s*-\\s"
+        },
+        {
+          "text": "No conventional-commit prefixes remain in titles",
+          "check": "no_regex",
+          "pattern": "\\b(fix|feat|chore|docs|refactor|test|style|ci|build|perf|revert)(\\([^)]+\\))?:"
+        },
+        {
+          "text": "No PR numbers appear",
+          "check": "no_regex",
+          "pattern": "#\\d{2,}"
+        },
+        {
+          "text": "No emoji appear",
+          "check": "no_regex",
+          "pattern": "preset:emoji"
+        },
+        {
+          "text": "Draft PRs are excluded",
+          "check": "json_values_absent",
+          "file": "raw_gh.json",
+          "where": {"isDraft": true},
+          "field": "url"
+        }
       ]
     }
   ]
