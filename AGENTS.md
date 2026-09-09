@@ -21,8 +21,9 @@ skills/<skill-name>/
   evals/evals.json      required
   scripts/ references/ assets/   optional
 docs/decisions/         ADRs
+scripts/                shared eval grader (grade.py, grade_engine.py, checks.py); no per-skill code
 AGENTS.md               this file
-<skill-name>-workspace/ local eval artifacts, gitignored, never commit
+eval-workspaces/<skill-name>/iteration-N/   local eval artifacts, gitignored, never commit
 ```
 
 See ADR-0002 for naming rules. In short: lowercase kebab-case, name the user's intent, and keep the directory name, `name:` front matter, and `skill_name` in evals identical.
@@ -57,21 +58,22 @@ If a skill produces text meant to be pasted into a messenger or email:
 
 Every non-trivial edit to a `SKILL.md` gets an eval run before it is considered done.
 
-1. Update `evals/evals.json` first. Turn any new requirement into a mechanically checkable expectation.
-2. Spawn, in the same turn, one `with_skill` and one `without_skill` subagent per prompt. Save outputs under `<skill-name>-workspace/iteration-N/eval-<id>-<slug>/{with_skill,without_skill}/outputs/`.
-3. Grade with a script (`grade.py`, one checker per expectation, regexes over the output). Write `run-1/grading.json` with `text`, `passed`, `evidence`, and a `summary` block.
+1. Update `evals/evals.json` first. Each expectation is an object with a human-readable `text` and a `check` spec (`regex`, `no_regex`, `line_pattern`, `line_sequence`, `json_values_absent`, `all_of`; see `scripts/checks.py`). Run `python3 scripts/grade.py --skill <name> --validate` to confirm every expectation is gradable.
+2. Spawn, in the same turn, one `with_skill` and one `without_skill` subagent per prompt. Save outputs under `eval-workspaces/<skill-name>/iteration-N/eval-<id>-<slug>/{with_skill,without_skill}/outputs/`.
+3. Grade with `python3 scripts/grade.py --skill <name>` (defaults to the newest `eval-workspaces/<name>/iteration-N`; pass `--workspace <path>` to pick another). The grader is fully generic: it reads the check specs from `evals.json` and writes `run-1/grading.json` (`expectations: [{text, passed, evidence}]` plus a `summary` block) next to each output. There is no per-skill grading code to write.
 4. Aggregate and open the viewer using the `skill-creator` skill:
    ```bash
    cd ~/.agents/skills/skill-creator
-   python3 -m scripts.aggregate_benchmark <workspace>/iteration-N --skill-name <name>
-   python3 eval-viewer/generate_review.py <workspace>/iteration-N --skill-name <name> \
-     --benchmark <workspace>/iteration-N/benchmark.json [--previous-workspace <workspace>/iteration-N-1]
+   python3 -m scripts.aggregate_benchmark <repo>/eval-workspaces/<name>/iteration-N --skill-name <name>
+   python3 eval-viewer/generate_review.py <repo>/eval-workspaces/<name>/iteration-N --skill-name <name> \
+     --benchmark <repo>/eval-workspaces/<name>/iteration-N/benchmark.json \
+     [--previous-workspace <repo>/eval-workspaces/<name>/iteration-N-1]
    ```
 5. Wait for the human to review, read `feedback.json`, edit the skill, repeat with a new iteration directory.
 
 Done means: with-skill passes 100% of expectations, baseline is meaningfully lower, and the reviewer has no further feedback.
 
-Reference implementation: the newest `grade.py` under `pr-review-request-workspace/` (local only; recreate from ADR-0005 if missing).
+Reference for writing check specs: `skills/pr-review-request/evals/evals.json`. If a new skill needs a kind of check that does not exist yet, add a generic check type to `scripts/checks.py`; never add skill-specific Python.
 
 ## Installing skills from this repo
 
@@ -102,7 +104,7 @@ The only fields the `skills` CLI reads from `SKILL.md` are `name` and `descripti
 
 - Conventional commits: `<type>(<scope>): <description>`, e.g. `feat(pr-review-request): add blank line between PR entries`
 - Scope is the skill name, or `adr`, `agents`, `repo`
-- Never commit `*-workspace/` directories
+- Never commit `eval-workspaces/`
 - Do not push or open PRs unless asked
 
 ## Tooling notes

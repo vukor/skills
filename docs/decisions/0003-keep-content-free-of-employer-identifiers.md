@@ -28,7 +28,7 @@ Committed content uses only generic placeholders:
 
 Well-known public product names (Slack, Teams, Jira, GitHub, Terraform) are allowed when they are the subject of the instruction, since they do not identify the employer.
 
-Eval workspaces (`*-workspace/` next to `skills/`) are listed in `.gitignore` and stay local.
+Eval workspaces (`eval-workspaces/<skill-name>/` at the repo root) are listed in `.gitignore` and stay local.
 
 Before any commit, scan the tracked files for the employer's org name, Jira keys, and internal repo names.
 
@@ -57,8 +57,8 @@ Before any commit, scan the tracked files for the employer's org name, Jira keys
 
 - [x] `grep -rn` for the employer org name over tracked files returns nothing
 - [x] `grep -rnE "[A-Z]{2,}-[0-9]+"` over `skills/` returns only `PROJ-*` or `ABC-*` style placeholders
-- [x] `.gitignore` contains `*-workspace/`
-- [x] `git status` shows no `*-workspace/` paths as untracked or staged
+- [x] `.gitignore` contains `eval-workspaces/`
+- [x] `git status` shows no `eval-workspaces/` paths as untracked or staged
 
 ## Alternatives Considered
 
