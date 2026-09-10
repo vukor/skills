@@ -30,25 +30,26 @@ Follow the `skill-creator` eval loop with these specifics:
 
 Both save the user-facing output to `message.txt` (or the artifact the skill produces) plus raw tool output for auditing.
 
-**Workspace layout** (sibling of `skills/`, gitignored):
+**Workspace layout** (under `eval-workspaces/`, gitignored):
 
 ```
-<skill-name>-workspace/
-  iteration-N/
-    grade.py                         grader for this iteration
-    benchmark.json / benchmark.md    aggregate produced by skill-creator
-    feedback.json                    human review from the viewer
-    eval-<id>-<slug>/
-      eval_metadata.json
-      with_skill/
-        outputs/
-        run-1/grading.json
-      without_skill/
-        outputs/
-        run-1/grading.json
+eval-workspaces/
+  <skill-name>/
+    iteration-N/
+      grade.py                         grader for this iteration
+      benchmark.json / benchmark.md    aggregate produced by skill-creator
+      feedback.json                    human review from the viewer
+      eval-<id>-<slug>/
+        eval_metadata.json
+        with_skill/
+          outputs/
+          run-1/grading.json
+        without_skill/
+          outputs/
+          run-1/grading.json
 ```
 
-**Grading** is a Python script (`grade.py`) with one checker function per expectation using regexes over the output. `grading.json` uses the fields `text`, `passed`, `evidence` and a `summary` block, so `skill-creator`'s `aggregate_benchmark` and `generate_review.py` can consume it. Assertion text in `grade.py` is copied verbatim from `evals.json`.
+**Grading** is a Python script (`grade.py`) with one checker function per expectation using regexes over the output. `grading.json` uses the fields `text`, `passed`, `evidence` and a `summary` block, so `skill-creator`'s `aggregate_benchmark` and `generate_review.py` can consume it. `grade.py` loads expectations at runtime from `evals.json` (keyed by exact text) rather than duplicating them as string literals; the only thing the script owns is the `CHECKERS` dict that maps each expectation string to its checker function.
 
 **Human review** happens in the `skill-creator` viewer after every iteration; feedback drives the next skill edit. Later iterations pass `--previous-workspace` so the reviewer sees the diff.
 
@@ -65,26 +66,26 @@ Both save the user-facing output to `message.txt` (or the artifact the skill pro
 
 ## Implementation Plan
 
-* **Affected paths**: `skills/<name>/evals/evals.json`, `<name>-workspace/` (local), `.gitignore`
+* **Affected paths**: `skills/<name>/evals/evals.json`, `eval-workspaces/<name>/` (local), `.gitignore`
 * **Dependencies**: Python 3 (stdlib only) for `grade.py`; the `skill-creator` skill at `~/.agents/skills/skill-creator/` for `scripts.aggregate_benchmark` and `eval-viewer/generate_review.py`
-* **Patterns to follow**: `pr-review-request-workspace/iteration-2/grade.py` is the reference grader; copy and extend it for new skills or iterations
+* **Patterns to follow**: `eval-workspaces/pr-review-request/iteration-3/grade.py` is the reference grader; copy and extend it for new skills or iterations
 * **Patterns to avoid**: grading by eyeballing; adding expectations that need human judgment to `evals.json` (keep those for viewer feedback); running with-skill first and baselines later (spawn all together so conditions match)
 * **Commands** (from `~/.agents/skills/skill-creator/`):
 
   ```bash
-  python3 -m scripts.aggregate_benchmark <workspace>/iteration-N --skill-name <name>
-  python3 eval-viewer/generate_review.py <workspace>/iteration-N --skill-name <name> \
-    --benchmark <workspace>/iteration-N/benchmark.json \
-    [--previous-workspace <workspace>/iteration-N-1]
+  python3 -m scripts.aggregate_benchmark eval-workspaces/<name>/iteration-N --skill-name <name>
+  python3 eval-viewer/generate_review.py eval-workspaces/<name>/iteration-N --skill-name <name> \
+    --benchmark eval-workspaces/<name>/iteration-N/benchmark.json \
+    [--previous-workspace eval-workspaces/<name>/iteration-N-1]
   ```
 
 ### Verification
 
-- [x] `skills/pr-review-request/evals/evals.json` has 3 prompts, each with mechanically checkable expectations
+- [x] `skills/pr-review-request/evals/evals.json` has 4 prompts, each with mechanically checkable expectations
 - [x] Each iteration directory contains `grade.py`, `benchmark.json`, and per-eval `run-1/grading.json` for both configurations
 - [x] `grading.json` entries have `text`, `passed`, `evidence`
 - [x] Iteration 2 with-skill pass rate is 100% (28/28); baseline 61%
-- [x] `*-workspace/` is gitignored and absent from `git status`
+- [x] `eval-workspaces/` and `*-workspace/` are gitignored and absent from `git status`
 
 ## Alternatives Considered
 

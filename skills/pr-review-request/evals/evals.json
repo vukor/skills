@@ -3,6 +3,7 @@
   "evals": [
     {
       "id": 1,
+      "slug": "team-review-message",
       "prompt": "Look at my open github pull requests and write a message to my team to review them",
       "expected_output": "A plain-text message with PRs grouped by repo, each entry showing ticket + clean title + URL, with the repo name as a section header and a short friendly opening line",
       "files": [],
@@ -22,6 +23,7 @@
     },
     {
       "id": 2,
+      "slug": "url-provided",
       "prompt": "write a message asking the team to review my prs - https://github.com/pulls/authored",
       "expected_output": "Same format as eval 1: clean grouped plain-text message ready to paste into any messenger",
       "files": [],
@@ -38,6 +40,7 @@
     },
     {
       "id": 3,
+      "slug": "teams-paste",
       "prompt": "my team needs to review my open PRs, can you get them from github and format a message I can paste in Teams",
       "expected_output": "A plain-text message grouped by repo with clean titles, ticket keys where available, and URLs, with no chat-tool-specific formatting",
       "files": [],
@@ -55,6 +58,7 @@
     },
     {
       "id": 4,
+      "slug": "list-my-open-prs",
       "prompt": "list my open PRs",
       "expected_output": "The same plain-text grouped list, produced without the user mentioning a team or a messenger; the skill should trigger on a plain listing request",
       "files": [],
