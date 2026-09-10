@@ -1,5 +1,6 @@
 # Eval run artifacts contain real data from the author's accounts (ADR-0003, ADR-0005)
 *-workspace/
+eval-workspaces/
 
 # OS / editor
 .DS_Store
