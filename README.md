@@ -13,6 +13,9 @@ npx skills add vukor/skills --global
 # Install a specific skill
 npx skills add vukor/skills --skill pr-review-request --global
 npx skills add vukor/skills --skill tech-design-doc --global
+npx skills add vukor/skills --skill opencode-permissions --global
+npx skills add vukor/skills --skill opencode-session-finder --global
+npx skills add vukor/skills --skill opencode-session-manager --global
 
 # Preview what is available without installing
 npx skills add vukor/skills --list
@@ -39,6 +42,28 @@ Trigger phrases: "list my open PRs", "write a message to my team about my PRs", 
 Writes Technical Design Documents (TDDs) — the architectural blueprints that explain how a system or feature will be built before a single line of production code is written. Asks 3–5 clarifying questions first, then generates a structured document saved to `docs/design/`.
 
 Trigger phrases: "write a TDD", "create a technical design document", "design doc", "tech spec", "system design document", "architectural design doc"
+
+### opencode-permissions
+
+Manages bash command permissions in `~/.config/opencode/opencode.json`. Adds, broadens, or reviews glob-pattern permission entries so that frequently-used safe commands are auto-allowed without repeated confirmation prompts.
+
+Trigger phrases: "allow this command", "update permissions for commands I asked about", "add permission for X", "fix opencode config permissions"
+
+### opencode-session-finder
+
+Searches the local OpenCode SQLite database for past sessions whose message content matches a text query. Returns a table of matching sessions (id, last updated, directory, title) so the user can resume the right one.
+
+Trigger phrases: "find my opencode session about X", "which session did I discuss Y in", "I forgot the work directory but I remember something that was said"
+
+**Requirements:** `sqlite3` CLI available on PATH.
+
+### opencode-session-manager
+
+Backs up and restores OpenCode sessions from the local SQLite database. Exports a session to JSON files and re-imports it into the same or a different installation.
+
+Trigger phrases: "backup session ses_...", "restore session from backup", "migrate session to another machine", "save a copy of this session"
+
+**Requirements:** `sqlite3` and `python3` available on PATH.
 
 ## Repository layout
 
