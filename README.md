@@ -12,6 +12,7 @@ npx skills add vukor/skills --global
 
 # Install a specific skill
 npx skills add vukor/skills --skill pr-review-request --global
+npx skills add vukor/skills --skill tech-design-doc --global
 
 # Preview what is available without installing
 npx skills add vukor/skills --list
@@ -32,6 +33,12 @@ Fetches the current user's open GitHub pull requests and formats them as a clean
 Trigger phrases: "list my open PRs", "write a message to my team about my PRs", "draft a PR review request", "what PRs do I have open"
 
 **Requirements:** [GitHub CLI (`gh`)](https://cli.github.com/) installed and authenticated (`gh auth login`).
+
+### tech-design-doc
+
+Writes Technical Design Documents (TDDs) — the architectural blueprints that explain how a system or feature will be built before a single line of production code is written. Asks 3–5 clarifying questions first, then generates a structured document saved to `docs/design/`.
+
+Trigger phrases: "write a TDD", "create a technical design document", "design doc", "tech spec", "system design document", "architectural design doc"
 
 ## Repository layout
 

@@ -1,0 +1,23 @@
+{
+  "skill_name": "tech-design-doc",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to write a TDD for a new real-time notification service. We're replacing a polling-based system that hammers our database every 5 seconds with something WebSocket-based. Our stack is Node.js + PostgreSQL, but we might use Redis for pub/sub. Audience is our backend team and product manager.",
+      "expected_output": "A complete TDD markdown file saved to docs/design/tdd-[name].md with: Introduction metadata, SMART Objectives, Background with problem statement including the polling problem, Non-Goals, a Solution section covering the proposed WebSocket architecture with Redis pub/sub, data flow, technology stack, test plan, monitoring plan, deployment and rollback plans, Alternate Solutions section explaining polling vs webhook vs other approaches, and Further Considerations covering at least security and operational concerns.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Can you write a design doc for adding multi-tenant support to our SaaS platform? Right now all customer data is in a single schema. We need to support data isolation per customer. We have about 50 enterprise customers and need this done before Q3. Security and compliance (SOC 2) are a big concern.",
+      "expected_output": "A TDD with clear Objectives tied to Q3 timeline, Background explaining single-schema limitation, Non-Goals scoping the work, a Solution section covering the tenancy model (row-level security vs schema-per-tenant vs separate databases), with Alternate Solutions comparing all three approaches and explaining the chosen path, Security section covering data isolation and SOC 2 implications, a Rollback Plan, and Open Questions capturing anything needing clarification.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I need a technical design document for a recommendation engine. We want to suggest products to users based on their browsing and purchase history. This is a greenfield ML feature. We haven't decided on the tech yet — maybe Python + FastAPI for the service, maybe use an existing vendor like Recombee or build custom. Timeline is 3 months.",
+      "expected_output": "A TDD that asks clarifying questions first (or makes reasonable assumptions explicit), includes an Objectives section with measurable recommendation quality metrics, a Solution section covering architecture choices, an Alternate Solutions / Deliberation section comparing build-vs-buy (custom ML vs Recombee or similar), technology stack details, a Test Plan covering both technical tests and A/B testing the recommendation quality, Future Goals deferring advanced personalization, and a Work section with milestones fitting a 3-month timeline.",
+      "files": []
+    }
+  ]
+}
