@@ -12,6 +12,7 @@ npx skills add vukor/skills --global
 
 # Install a specific skill
 npx skills add vukor/skills --skill pr-review-request --global
+npx skills add vukor/skills --skill tech-design-doc --global
 
 # Preview what is available without installing
 npx skills add vukor/skills --list
