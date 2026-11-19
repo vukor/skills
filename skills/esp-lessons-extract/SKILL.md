@@ -28,22 +28,24 @@ The exact templates and style rules are in `references/formats.md` — read it b
 Miro PDFs are raster images (12 000+ px wide) with no text layer, so text has to be read from images. Run:
 
 ```bash
-python3 <skill-dir>/scripts/extract_board.py "<board.pdf>" <scratch>/board
+uv run <skill-dir>/scripts/extract_board.py "<board.pdf>" <scratch>/board
 ```
 
-It writes full page images, overlapping tiles (low-resolution pages are upscaled ×3), an OCR draft per tile and `index.txt`. If the PDF does have a text layer (`pdftotext` returns real text), use that instead.
+`uv run` installs the script's dependencies (pillow, pymupdf) itself, so nothing needs to be preinstalled. Without `uv`, create a venv, `pip install pillow pymupdf`, and run the script with that venv's python.
+
+It writes full page images, overlapping tiles (short pages are upscaled: ×3 under 1500 px high, ×1.5 under 2200 px, as for a wide strip), `index.txt`, and an OCR draft per tile when `tesseract` is installed. Without tesseract the OCR step is skipped and `index.txt` says so: read the tiles directly, which works fine. If `index.txt` flags `HAS TEXT LAYER`, use the PDF text (`pdftotext` or PyMuPDF `page.get_text()`) instead.
 
 ### 2. Find the lesson
 
 Lessons are delimited by Task numbering, not by page: a lesson is the run of blocks titled `TASK 1`, `TASK 2`, … and a new `TASK 1` starts the next lesson. Tasks of one lesson can be spread over several pages, with homework or revision blocks in between — group by numbering. Unnumbered exercise blocks belong to the lesson whose Task they practise (a "Choose the most appropriate connector" block belongs with the Connectors task). "Home assignment" blocks are homework, not cheat-sheet material, unless the user asks for them.
 
-Skim `ocr/page-*.txt` to map where each Task sits. If the boundary is ambiguous, pick the most reasonable reading and state it in one line in the reply.
+Skim `ocr/page-*.txt` to map where each Task sits (or, without OCR, page through the tiles in order). If the boundary is ambiguous, pick the most reasonable reading and state it in one line in the reply.
 
 ### 3. Read it properly
 
 OCR is a draft: it drops words at tile edges, mangles IPA, misreads Cyrillic and handwriting, and loses table structure. For every block you will use:
 
-- Open the tile(s) with the Read tool and read the text yourself. When a block is cut by a tile edge, crop the page image around the block (PIL, from `page-N.png`) instead of guessing the missing part.
+- Open the tile(s) with the Read tool and read the text yourself. When a block is cut by a tile edge, crop the page image around the block (PIL, from `page-N.png`; system Python has no PIL, so run the crop with `uv run --with pillow python -I script.py` or a venv) instead of guessing the missing part.
 - Tell apart three kinds of text: teacher's material (printed blocks, tables, stickies), teacher's margin notes (loose words, Russian glosses, IPA, highlighted corrections) and the learner's own answers/drafts (often in yellow boxes or filled-in blanks, sometimes with red marks on errors). Only the first two go into the files; learner answers are not models.
 - Never invent text that isn't legible. If a phrase is unreadable, drop it, or restore it only when the meaning is unambiguous, and mention it in the reply.
 
