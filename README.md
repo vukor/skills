@@ -13,6 +13,7 @@ npx skills add vukor/skills --global
 # Install a specific skill
 npx skills add vukor/skills --skill pr-review-request --global
 npx skills add vukor/skills --skill tech-design-doc --global
+npx skills add vukor/skills --skill doc-digest --global
 npx skills add vukor/skills --skill opencode-permissions --global
 npx skills add vukor/skills --skill opencode-session-finder --global
 npx skills add vukor/skills --skill opencode-session-manager --global
@@ -42,6 +43,12 @@ Trigger phrases: "list my open PRs", "write a message to my team about my PRs", 
 Writes Technical Design Documents (TDDs) — the architectural blueprints that explain how a system or feature will be built before a single line of production code is written. Asks 3–5 clarifying questions first, then generates a structured document saved to `docs/design/`.
 
 Trigger phrases: "write a TDD", "create a technical design document", "design doc", "tech spec", "system design document", "architectural design doc"
+
+### doc-digest
+
+Helps a reviewer get through a long tech spec, design doc, requirements doc, or proposal (file, Notion link, or URL). Works one step at a time and keeps every output much shorter than the document: a brief, a consistency check, stress-test questions, draft review comments, and a decision.
+
+Trigger phrases: "help me review this spec", "digest this design doc", "I need to give feedback on this proposal", "sign off on this RFC"
 
 ### opencode-permissions
 
