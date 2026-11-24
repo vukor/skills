@@ -14,6 +14,8 @@ npx skills add vukor/skills --global
 npx skills add vukor/skills --skill pr-review-request --global
 npx skills add vukor/skills --skill tech-design-doc --global
 npx skills add vukor/skills --skill doc-digest --global
+npx skills add vukor/skills --skill pr-digest --global
+npx skills add vukor/skills --skill explain-diff-html --global
 npx skills add vukor/skills --skill opencode-permissions --global
 npx skills add vukor/skills --skill opencode-session-finder --global
 npx skills add vukor/skills --skill opencode-session-manager --global
@@ -51,6 +53,24 @@ Trigger phrases: "write a TDD", "create a technical design document", "design do
 Helps a reviewer get through a long tech spec, design doc, requirements doc, or proposal (file, Notion link, or URL). Works one step at a time and keeps every output much shorter than the document: a brief, a consistency check, stress-test questions, draft review comments, and a decision.
 
 Trigger phrases: "help me review this spec", "digest this design doc", "I need to give feedback on this proposal", "sign off on this RFC"
+
+### pr-digest
+
+Helps a reviewer get through a pull request someone else opened, often agent-authored. Works one step at a time: triage, a short brief with a reading map, checks it actually runs, an HTML explanation to read before the diff, a reading session, stress-test questions, draft review comments, and a decision. Never posts anything without the reviewer's go-ahead.
+
+Trigger phrases: "help me review this PR", "digest this pull request", "should I approve this PR", "walk me through PR #123"
+
+**Requirements:** [GitHub CLI (`gh`)](https://cli.github.com/) installed and authenticated (`gh auth status`); the `explain-diff-html` skill from this repo; [Plannotator](https://github.com/backnotprop/plannotator) for reading the diff.
+
+### explain-diff-html
+
+Writes a rich, interactive explanation of a code change, diff, branch, or PR as one self-contained HTML page: background, intuition with diagrams and toy data, a code walkthrough, and a five-question quiz. Saves it next to the review notes in the user's wiki and opens it in the browser. `pr-digest` runs it in the background before the reviewer reads the diff.
+
+Trigger phrases: "explain this PR in HTML", "explain this diff", "help me understand what this branch changes"
+
+**Requirements:** [GitHub CLI (`gh`)](https://cli.github.com/) for PR URLs; `open` (macOS) or `xdg-open` (Linux) to open the page.
+
+Based on Geoffrey Litt's prompt: https://gist.github.com/geoffreylitt/a29df1b5f9865506e8952488eac3d524
 
 ### opencode-permissions
 
