@@ -111,6 +111,22 @@
         "decisions.jsonl has no line mentioning 9999",
         "Script check: log --sessions 99999999 exits with code 2 and writes nothing"
       ]
+    },
+    {
+      "id": 9,
+      "slug": "report-only",
+      "prompt": "/improve-skills --since 2026-01-01 --report /tmp/improve-skills-eval/report.html",
+      "expected_output": "Runs the review without asking anything, writes one self-contained HTML report with the proposals, and changes no skill or state file",
+      "files": [],
+      "expectations": [
+        "The reply gives the path /tmp/improve-skills-eval/report.html",
+        "Script check: the report file exists and contains <html",
+        "Script check: the report has no <script and no src=\"http or href=\"http to external assets",
+        "The reply asks no question and contains no \"Apply / Edit / Skip\"",
+        "Script check: decisions.jsonl and state.json in the state dir are byte-identical before and after the run",
+        "Script check: no file under the skills directory changed during the run",
+        "Script check: the transcript runs no log, mark or backup subcommand"
+      ]
     }
   ]
 }
