@@ -76,9 +76,13 @@ Trigger phrases: "backup session ses_...", "restore session from backup", "migra
 
 ### improve-skills
 
-Reviews past Claude Code session transcripts for feedback on the skills used in them (corrections, interrupts, failed steps, missing instructions) and proposes minimal old-to-new diffs, one skill at a time. Nothing is written until the user approves each diff. A single explicit correction is enough; other signals must recur across sessions first. User-invoked only: run `/improve-skills`, `/improve-skills <skill-name>`, `/improve-skills --since YYYY-MM-DD` or `/improve-skills help`.
+Reviews past Claude Code session transcripts for feedback on the skills used in them (corrections, interrupts, failed steps, missing instructions) and proposes minimal old-to-new diffs, one skill at a time. Nothing is written until the user approves each diff. A single explicit correction is enough; other signals must recur across sessions first. User-invoked only: run `/improve-skills`, `/improve-skills <skill-name>`, `/improve-skills --since YYYY-MM-DD`, `/improve-skills --report <file.html>` or `/improve-skills help`.
 
-**Requirements:** `python3` on PATH. Reads `~/.claude/projects`; keeps its state in `~/.claude/improve-skills/`.
+**Scheduled report (optional, macOS):** `scripts/scheduled-run.sh` runs the skill headless with `--report`: it drafts the proposals into one HTML page, opens it in the browser and changes nothing else; you apply proposals later with `/improve-skills`. `assets/improve-skills.plist.template` schedules it for Mondays at 12:00.
+
+**Requirements:** `python3` on PATH. Reads `~/.claude/projects`; keeps its state in `~/.claude/improve-skills/`. The scheduled run needs macOS and the Mac awake and logged in at the scheduled time.
+
+See [`skills/improve-skills/README.md`](skills/improve-skills/README.md) for setup, everyday use and the scheduled report.
 
 ### inbox-triage
 

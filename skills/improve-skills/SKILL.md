@@ -1,7 +1,7 @@
 ---
 name: improve-skills
 description: Review past Claude Code sessions for feedback on the skills used in them, and propose small, approved fixes to those skills.
-argument-hint: "[skill-name] [--since YYYY-MM-DD] [--session <id>]"
+argument-hint: "[skill-name] [--since YYYY-MM-DD] [--session <id>] [--report <file.html>]"
 disable-model-invocation: true
 ---
 
@@ -37,9 +37,10 @@ When the argument is `help`, `-h` or `--help`, print the usage below and stop; n
 /improve-skills <skill-name>         one skill
 /improve-skills --since YYYY-MM-DD   sessions modified since a date, ignoring review state
 /improve-skills --session <id>       one session (id or unique prefix)
+/improve-skills --report <file.html> report-only: write proposals to an HTML file, change nothing
 ```
 
-Otherwise map the arguments to flags: a skill name → `--skill <name>`; a date → `--since <date>`; a session id → `--session <id>`. No arguments → the default scope: sessions not yet marked processed (first run: the last 14 days). Check a skill-name argument with `where <name>` first: `not found` or `broken-link` means stop and tell the user, since a scan would silently return nothing.
+Otherwise map the arguments to flags: a skill name → `--skill <name>`; a date → `--since <date>`; a session id → `--session <id>`; `--report <file.html>` switches to a [report-only run](#report-only-run) and is not passed to the helper. No arguments → the default scope: sessions not yet marked processed (first run: the last 14 days). Check a skill-name argument with `where <name>` first: `not found` or `broken-link` means stop and tell the user, since a scan would silently return nothing.
 
 ```sh
 python3 -I scripts/skill_feedback.py scan [flags]
@@ -97,3 +98,15 @@ Mark only after the decisions are logged, so an interrupted run re-scans instead
 ### 7. Report
 
 Report briefly: sessions scanned; per skill, what was applied, skipped, pending (with recurrence so far) and discarded; propose-only diffs the user still has to apply upstream; uncommitted changes per git repo; environment findings handed to `/retro`; overlapping skills worth a later merge.
+
+## Report-only run
+
+`--report <file.html>` is for unattended runs such as `scripts/scheduled-run.sh`, where nobody can answer Apply / Edit / Skip. Run steps 1-4 as usual with the other flags, then replace steps 5-7 with one report:
+
+- Write only `<file.html>`: no skill edits, no `backup`, no `log`, no `mark`. The sessions stay unreviewed, so the next interactive run sees the same evidence and the user applies proposals there.
+- Ask no questions; finish the pass and stop.
+- Make the file one self-contained HTML page: inline CSS, no scripts or external assets, readable in light and dark mode. Escape `<`, `>` and `&` in quotes and diffs.
+- Include the scope and the number of sessions scanned; per skill, each proposal in the [proposals.md](references/proposals.md) format with its ownership, minus the Apply / Edit / Skip line; pending and discarded candidates with recurrence so far; environment findings for `/retro`; overlapping skills worth a later merge; and a closing line telling the user to run `/improve-skills` to apply proposals.
+- When nothing qualifies, still write the page and say so.
+
+**Done when** the file exists and the reply gives its path.

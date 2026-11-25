@@ -13,3 +13,6 @@ __pycache__/
 
 # Packaged skills
 *.skill
+
+# improve-skills scheduled reports (local output)
+skills/improve-skills/reports/

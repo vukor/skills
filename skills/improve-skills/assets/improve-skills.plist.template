@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Scheduled report-only improve-skills run: Mondays at 12:00. To change the
+  schedule, edit Weekday (0 or 7 = Sunday, 1 = Monday), Hour and Minute, or
+  turn StartCalendarInterval into an array with one entry per run.
+  The runner is found through $HOME, so the job holds no user paths; it
+  expects the skill installed at ~/.claude/skills/improve-skills. Fill the
+  placeholders and install the result into ~/Library/LaunchAgents/; launchd
+  reloads user jobs at login only from there.
+  The script writes its own log (~/Library/Logs/improve-skills.log).
+  A run missed while the Mac sleeps starts once on wake, even on a later day;
+  one missed while it is off is not made up.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>__LABEL__</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>exec /bin/bash "$HOME/.claude/skills/improve-skills/scripts/scheduled-run.sh"</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>__CLAUDE_DIR__:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key>
+    <integer>1</integer>
+    <key>Hour</key>
+    <integer>12</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+</dict>
+</plist>
