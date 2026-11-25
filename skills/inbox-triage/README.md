@@ -14,7 +14,7 @@ npx skills add vukor/skills --skill inbox-triage --global
 
 Or link this directory into your agent's skills folder, e.g. `~/.claude/skills/inbox-triage`.
 
-**Requirements:** Claude Code (or another agent runtime that loads skills) with web page fetch. The weekly run needs macOS.
+**Requirements:** Claude Code (or another agent runtime that loads skills) with web page fetch. The scheduled run needs macOS.
 
 ## Tell it where the vault is
 
@@ -31,16 +31,26 @@ The skill looks for the inbox at `<vault>/!Inbox/`. It finds the vault in this o
 
 ## First run
 
-Run `/inbox-triage`. If `!Inbox/inbox.md` does not exist yet, the skill creates it with a short header and an empty `## Входящие` ("Incoming") section, then stops.
+Run `/inbox-triage`. If `!Inbox/inbox.md` does not exist yet, the skill creates it with a short header and an empty `## Incoming` section, then stops.
 
-The skill writes notes and the inbox header in Russian. To change the language, edit the strings in `SKILL.md` and `references/example-note.md`.
+## Language
+
+`inbox.md` is always in English: the header, the `## Incoming` heading and the markers are fixed, so every run parses the file the same way.
+
+Notes are written in English by default. To get them in another language, either say so in the request ("triage my inbox, write the notes in Spanish") or add a line to your global instructions, for example:
+
+```markdown
+- `inbox-triage`: write notes in Spanish.
+```
+
+Only the prose changes. Section headings (`## Review`, `## Runbook`, `## Open questions` and the rest) stay in English. For the scheduled run, set `INBOX_TRIAGE_LANGUAGE` (see below), because a headless run may not read your global instructions.
 
 ## Everyday use
 
-1. Open `!Inbox/inbox.md` and paste items under `## Входящие`:
+1. Open `!Inbox/inbox.md` and paste items under `## Incoming`:
 
    ```markdown
-   ## Входящие
+   ## Incoming
    https://github.com/example/some-cli
 
    An idea: keep runbooks next to the alerts that page us.
@@ -58,7 +68,7 @@ The skill writes notes and the inbox header in Russian. To change the language, 
 3. Open the new notes in `!Inbox/notes/`. The inbox now looks like this:
 
    ```markdown
-   ## Входящие
+   ## Incoming
    - ✅ [[notes/some-cli|some-cli: a CLI that does X]]
 
    - ✅ [[notes/runbooks-next-to-alerts|Runbooks next to alerts]]
@@ -103,14 +113,14 @@ One note per item, at `!Inbox/notes/<slug>.md`. `references/example-note.md` sho
 - Search the web for an item with no link. It works from the text you wrote.
 - Ask questions mid-run. Gaps go into the note's open questions.
 
-## Weekly run (macOS, optional)
+## Scheduled run (macOS, optional)
 
-`scripts/friday-run.sh` runs the skill headless. The session has no shell, no MCP servers and none of your settings files. It can only use file tools inside the inbox, read your installed skills and plugin cache, and fetch web pages. `assets/inbox-triage.plist.template` schedules the script for Fridays at 17:00.
+`scripts/scheduled-run.sh` runs the skill headless. The session has no shell, no MCP servers and none of your settings files. It can only use file tools inside the inbox, read your installed skills and plugin cache, and fetch web pages. `assets/inbox-triage.plist.template` schedules the script for Monday to Friday at 10:00. `StartCalendarInterval` in the plist has one entry per day; to pick other days or another time, edit their `Weekday` (0 or 7 is Sunday, 1 is Monday), `Hour` and `Minute`, or add and remove entries; after loading, reload the job (`launchctl bootout`, then `bootstrap`) for the change to take effect.
 
 1. Try the script by hand first:
 
    ```bash
-   INBOX_TRIAGE_VAULT="$HOME/notes/Work" bash skills/inbox-triage/scripts/friday-run.sh
+   INBOX_TRIAGE_VAULT="$HOME/notes/Work" bash skills/inbox-triage/scripts/scheduled-run.sh
    tail -n 40 ~/Library/Logs/inbox-triage.log
    ```
 
@@ -119,21 +129,23 @@ One note per item, at `!Inbox/notes/<slug>.md`. `references/example-note.md` sho
    | Placeholder | Value |
    |---|---|
    | `__LABEL__` | Job name, e.g. `com.example.inbox-triage` |
-   | `__RUNNER__` | Absolute path to `scripts/friday-run.sh` |
+   | `__RUNNER__` | Absolute path to `scripts/scheduled-run.sh` |
    | `__VAULT__` | The vault that holds `!Inbox/` |
    | `__CLAUDE__` | Output of `command -v claude` |
    | `__CLAUDE_DIR__` | The directory that contains `claude` |
    | `__LOG__` | Log file, e.g. `/Users/me/Library/Logs/inbox-triage.log` |
+   | `__LANGUAGE__` | Notes language, e.g. `English` |
 
    For example:
 
    ```bash
    sed -e 's|__LABEL__|com.example.inbox-triage|' \
-       -e "s|__RUNNER__|$PWD/skills/inbox-triage/scripts/friday-run.sh|" \
+       -e "s|__RUNNER__|$PWD/skills/inbox-triage/scripts/scheduled-run.sh|" \
        -e "s|__VAULT__|$HOME/notes/Work|" \
        -e "s|__CLAUDE__|$(command -v claude)|" \
        -e "s|__CLAUDE_DIR__|$(dirname "$(command -v claude)")|" \
        -e "s|__LOG__|$HOME/Library/Logs/inbox-triage.log|g" \
+       -e 's|__LANGUAGE__|English|' \
        skills/inbox-triage/assets/inbox-triage.plist.template \
        > ~/Library/LaunchAgents/com.example.inbox-triage.plist
    ```
@@ -159,10 +171,11 @@ Script settings, all environment variables:
 | `INBOX_TRIAGE_VAULT` | required | Vault that holds `!Inbox/` |
 | `INBOX_TRIAGE_CLAUDE` | `claude` on `PATH` | Claude Code binary |
 | `INBOX_TRIAGE_LOG` | `~/Library/Logs/inbox-triage.log` | Log file; each run appends a start line, the JSON result and an end line with the exit code |
+| `INBOX_TRIAGE_LANGUAGE` | none (English) | Language for note prose, e.g. `Russian` |
 
 Things to know:
 
-- Claude Code must be logged in, and the Mac awake and logged in at 17:00 on Friday. A run missed during sleep starts once on wake; a run missed while the Mac is off is skipped.
+- Claude Code must be logged in, and the Mac awake and logged in at 10:00 on weekdays. A run missed during sleep starts once on wake; a run missed while the Mac is off is skipped.
 - Every scheduled run starts Claude, even when the inbox has nothing new. In that case the skill changes no file.
 - A headless run cannot read `~/.claude/settings.json` or skills that are symlinks to outside `~/.claude/skills`. Notes from those runs list them under "could not check".
 
@@ -170,7 +183,7 @@ Things to know:
 
 - **"The inbox path is missing."** Add the vault path to your global instructions (see above), or give the path in the request.
 - **An item keeps its `⚠️`.** The page needs a login, blocks automated fetches, or is gone. Paste a public mirror or a few lines of text in place of the link.
-- **Nothing happened.** Every item already starts with `- ✅`, or the items are above the `## Входящие` heading. Only text under that heading counts.
+- **Nothing happened.** Every item already starts with `- ✅`, or the items are above the `## Incoming` heading. Only text under that heading counts.
 - **Two links became one note.** They were on one line, or in a block that also had ordinary text. Put each link on its own line.
 
 ## Files
@@ -178,7 +191,7 @@ Things to know:
 ```
 SKILL.md                              the instructions the agent follows
 references/example-note.md            a full example note
-scripts/friday-run.sh                 headless runner for the weekly job
-assets/inbox-triage.plist.template    launchd job, Fridays at 17:00
+scripts/scheduled-run.sh              headless runner for the scheduled job
+assets/inbox-triage.plist.template    launchd job, Monday to Friday at 10:00
 evals/                                test prompts and fixtures (development only)
 ```

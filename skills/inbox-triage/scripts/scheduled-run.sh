@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs the inbox-triage skill headless, for the weekly launchd job or by hand.
+# Runs the inbox-triage skill headless, for the scheduled launchd job or by hand.
 # Every run starts Claude; the skill itself changes nothing when the inbox has
 # nothing new, and each run appends its result to the log.
 #
@@ -18,6 +18,9 @@
 #   INBOX_TRIAGE_VAULT   path to the vault that holds !Inbox/ (required)
 #   INBOX_TRIAGE_CLAUDE  claude binary (default: claude on PATH)
 #   INBOX_TRIAGE_LOG     log file (default: ~/Library/Logs/inbox-triage.log)
+#   INBOX_TRIAGE_LANGUAGE  language for note prose, e.g. Russian (default:
+#                        none, so the skill falls back to English; restricted
+#                        mode may not load your global instructions)
 set -u
 
 VAULT="${INBOX_TRIAGE_VAULT:?set INBOX_TRIAGE_VAULT to the vault path}"
@@ -26,7 +29,9 @@ CLAUDE_BIN="${INBOX_TRIAGE_CLAUDE:-claude}"
 LOG="${INBOX_TRIAGE_LOG:-$HOME/Library/Logs/inbox-triage.log}"
 SKILL_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 SKILL="inbox-triage-runner:inbox-triage"
-PROMPT="Run the $SKILL skill on the inbox at $INBOX. Nobody is watching this run: do not ask questions, finish the pass and stop."
+PROMPT="Run the $SKILL skill on the inbox at $INBOX."
+[ -n "${INBOX_TRIAGE_LANGUAGE:-}" ] && PROMPT="$PROMPT Write the notes in $INBOX_TRIAGE_LANGUAGE."
+PROMPT="$PROMPT Nobody is watching this run: do not ask questions, finish the pass and stop."
 
 mkdir -p "$(dirname "$LOG")" "$INBOX"
 log() { printf '%s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$*" >>"$LOG"; }

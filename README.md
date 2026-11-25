@@ -82,15 +82,15 @@ Reviews past Claude Code session transcripts for feedback on the skills used in 
 
 ### inbox-triage
 
-Turns everything pasted into one scratch note in an Obsidian vault (`!Inbox/inbox.md`: links, sentences, half-formed ideas, no format) into one note per item with a review (pros, cons, comparison with the skills and plugins already installed) and a runbook for trying it, blockers first. Each item is replaced by a link to its note; a page that does not open stays marked and is retried next run. Notes are written in Russian. It reads pages and writes only inside `!Inbox/`; it installs and runs nothing.
+Turns everything pasted into one scratch note in an Obsidian vault (`!Inbox/inbox.md`: links, sentences, half-formed ideas, no format) into one note per item with a review (pros, cons, comparison with the skills and plugins already installed) and a runbook for trying it, blockers first. Each item is replaced by a link to its note; a page that does not open stays marked and is retried next run. Notes are written in English by default; set another language in the request or your global instructions. `inbox.md` always uses the English format. It reads pages and writes only inside `!Inbox/`; it installs and runs nothing.
 
 Trigger phrases: "triage my inbox", "go through my inbox", "I dropped some links into the inbox", `/inbox-triage`
 
-**Weekly run (optional, macOS):** `scripts/friday-run.sh` runs the skill headless with no shell, no user settings or MCP servers, and file access limited to the inbox, installed skills and the plugin cache. `assets/inbox-triage.plist.template` schedules it for Fridays at 17:00: fill in its placeholders with absolute paths, save it to `~/Library/LaunchAgents/`, and load it with `launchctl bootstrap gui/$(id -u) <plist>`. Runs are logged to `~/Library/Logs/inbox-triage.log` by default.
+**Scheduled run (optional, macOS):** `scripts/scheduled-run.sh` runs the skill headless with no shell, no user settings or MCP servers, and file access limited to the inbox, installed skills and the plugin cache. `assets/inbox-triage.plist.template` schedules it for Monday to Friday at 10:00: fill in its placeholders with absolute paths, save it to `~/Library/LaunchAgents/`, and load it with `launchctl bootstrap gui/$(id -u) <plist>`. Runs are logged to `~/Library/Logs/inbox-triage.log` by default.
 
-**Requirements:** Claude Code logged in. The weekly run needs macOS and the Mac awake and logged in at the scheduled time.
+**Requirements:** Claude Code logged in. The scheduled run needs macOS and the Mac awake and logged in at the scheduled time.
 
-See [`skills/inbox-triage/README.md`](skills/inbox-triage/README.md) for setup, everyday use and the weekly run.
+See [`skills/inbox-triage/README.md`](skills/inbox-triage/README.md) for setup, everyday use and the scheduled run.
 
 ## Repository layout
 

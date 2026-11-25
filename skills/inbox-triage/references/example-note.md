@@ -1,6 +1,6 @@
 # Example note
 
-A note for the inbox item `https://github.com/example/mdtidy`, written by a scheduled run. The tool is made up; the structure and level of detail are what matter.
+A note for the inbox item `https://github.com/example/mdtidy`, written by a scheduled run with the default notes language (English). The tool is made up; the structure and level of detail are what matter. With another notes language the headings stay as they are and only the prose changes.
 
 ```markdown
 ---
@@ -13,58 +13,58 @@ kind: tool
 
 > https://github.com/example/mdtidy
 
-## Обзор
+## Review
 
-### Что это
-CLI, который форматирует Markdown-файлы по единому стилю: заголовки, списки, ширина строк. Есть режим `--check` для CI и плагин для pre-commit.
+### What it is
+A CLI that formats Markdown files to one style: headings, lists, line width. It has a `--check` mode for CI and a pre-commit hook.
 
-### Плюсы
-- Один бинарник, без Node и Python.
-- Режим `--check` ничего не меняет и подходит для CI.
-- Правила задаются в одном `.mdtidy.toml`.
+### Pros
+- A single binary, no Node or Python.
+- `--check` changes nothing and fits CI.
+- Rules live in one `.mdtidy.toml`.
 
-### Минусы
-- Переносит длинные строки по умолчанию; в заметках Obsidian это ломает ссылки, придётся отключать.
-- Последний релиз полгода назад, 40 открытых issue про таблицы.
+### Cons
+- Wraps long lines by default; in Obsidian notes that breaks links, so it has to be turned off.
+- Last release six months ago, 40 open issues about tables.
 
-### Сравнение с тем, что уже есть
-Похожего не нашёл: среди установленных скиллов и плагинов нет форматтера Markdown. Ближе всего скилл `obsidian-markdown`, но он описывает синтаксис Obsidian и ничего не форматирует.
+### Compared with what you have
+Found nothing similar: no installed skill or plugin formats Markdown. The closest is the `obsidian-markdown` skill, but it describes Obsidian syntax and formats nothing.
 
-### Что не удалось проверить
-- `~/.claude/settings.json`: в этом запуске недоступен.
-- Скиллы, подключённые симлинками: их описания не прочитаны.
-- Работает ли mdtidy с callout-блоками Obsidian: в README не сказано.
+### Could not check
+- `~/.claude/settings.json`: not readable in this run.
+- Skills linked as symlinks: their descriptions were not read.
+- Whether mdtidy handles Obsidian callout blocks: the README does not say.
 
-## Ранбук
+## Runbook
 
-### Блокеры
-Блокеров не нашёл: есть сборка для macOS на Apple silicon, требований к версии ОС нет.
+### Blockers
+Found none: there is a macOS build for Apple silicon and no OS version requirement.
 
-### Что нужно
+### What you need
 - Homebrew.
-- Папка с копией нескольких заметок для пробы.
+- A folder with copies of a few notes to try it on.
 
-### Шаги
+### Steps
 1. `brew install example/tap/mdtidy`
-2. Скопировать три-четыре заметки во временную папку.
-3. `mdtidy --check <папка>`: посмотреть, что он считает нарушениями.
-4. `mdtidy --no-wrap <папка>` и сравнить файлы с оригиналами.
+2. Copy three or four notes into a temporary folder.
+3. `mdtidy --check <folder>`: see what it reports.
+4. `mdtidy --no-wrap <folder>` and diff the files against the originals.
 
-### Что может пойти не так
-- Без `--no-wrap` перенесёт строки и сломает длинные ссылки.
-- Удаление: `brew uninstall mdtidy`.
+### What can go wrong
+- Without `--no-wrap` it wraps lines and breaks long links.
+- To remove: `brew uninstall mdtidy`.
 
-### Побочные эффекты
-- Без `--check` переписывает файлы на месте. Безопаснее: пробовать только на копии заметок, не на хранилище.
-- Ставит пакет через Homebrew; других служб и доступа к аккаунтам нет.
+### Side effects
+- Without `--check` it rewrites files in place. Safer: try it only on copies, never on the vault.
+- Installs a Homebrew package; no services and no account access.
 
-## Открытые вопросы
-- Как он обрабатывает frontmatter с вложенными списками?
-- Стоит ли запускать его на всём хранилище или только на новых заметках? Решать тебе.
+## Open questions
+- How does it handle front matter with nested lists?
+- Run it on the whole vault or only on new notes? Your call.
 ```
 
 The matching line in `inbox.md` after the run:
 
 ```markdown
-- ✅ [[notes/mdtidy|mdtidy — форматтер Markdown]]
+- ✅ [[notes/mdtidy|mdtidy: a Markdown formatter]]
 ```

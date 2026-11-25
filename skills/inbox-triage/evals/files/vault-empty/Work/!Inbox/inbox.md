@@ -1,11 +1,11 @@
-# Инбокс
+# Inbox
 
-Вставляй ниже что угодно: ссылку, фразу, полуидею. Формат и «зачем» не нужны.
-Отделяй записи пустой строкой. Ссылки можно вставлять по одной на строку.
+Paste anything below: a link, a sentence, a half-formed idea. No format or reason needed.
+Separate items with a blank line. Links can go one per line.
 
-После разбора запись превращается в ссылку на заметку с обзором и ранбуком.
-⚠️ в начале записи значит, что страница не открылась; разбор повторится в следующий раз.
+After triage each item becomes a link to a note with a review and a runbook.
+⚠️ at the start of an item means its page did not open; it is retried on the next run.
 
-## Входящие
+## Incoming
 
-- ✅ [[notes/ripgrep|ripgrep (старая заметка)]]
+- ✅ [[notes/ripgrep|ripgrep (old note)]]

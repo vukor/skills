@@ -4,6 +4,6 @@ added: 2026-11-20
 kind: tool
 ---
 
-# ripgrep (старая заметка)
+# ripgrep (old note)
 
 > https://example.com/old-ripgrep-review
