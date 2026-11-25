@@ -17,6 +17,7 @@ npx skills add vukor/skills --skill doc-digest --global
 npx skills add vukor/skills --skill opencode-permissions --global
 npx skills add vukor/skills --skill opencode-session-finder --global
 npx skills add vukor/skills --skill opencode-session-manager --global
+npx skills add vukor/skills --skill improve-skills --global
 
 # Preview what is available without installing
 npx skills add vukor/skills --list
@@ -71,6 +72,12 @@ Backs up and restores OpenCode sessions from the local SQLite database. Exports 
 Trigger phrases: "backup session ses_...", "restore session from backup", "migrate session to another machine", "save a copy of this session"
 
 **Requirements:** `sqlite3` and `python3` available on PATH.
+
+### improve-skills
+
+Reviews past Claude Code session transcripts for feedback on the skills used in them (corrections, interrupts, failed steps, missing instructions) and proposes minimal old-to-new diffs, one skill at a time. Nothing is written until the user approves each diff. A single explicit correction is enough; other signals must recur across sessions first. User-invoked only: run `/improve-skills`, `/improve-skills <skill-name>`, `/improve-skills --since YYYY-MM-DD` or `/improve-skills help`.
+
+**Requirements:** `python3` on PATH. Reads `~/.claude/projects`; keeps its state in `~/.claude/improve-skills/`.
 
 ## Repository layout
 
