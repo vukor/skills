@@ -90,6 +90,8 @@ Trigger phrases: "triage my inbox", "go through my inbox", "I dropped some links
 
 **Requirements:** Claude Code logged in. The weekly run needs macOS and the Mac awake and logged in at the scheduled time.
 
+See [`skills/inbox-triage/README.md`](skills/inbox-triage/README.md) for setup, everyday use and the weekly run.
+
 ## Repository layout
 
 ```
