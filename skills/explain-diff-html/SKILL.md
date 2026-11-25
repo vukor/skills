@@ -1,6 +1,6 @@
 ---
 name: explain-diff-html
-description: Use when the user asks for a rich or HTML explanation of a code change: a diff, branch, commit or PR. Produces one interactive HTML page with background, intuition, a code walkthrough and a quiz. Make sure to use it for requests like "explain this PR in HTML", "explain this diff", "help me understand what this branch changes" or "explain this commit in depth", even if they never say "HTML".
+description: 'Use when the user asks for a rich or HTML explanation of a code change: a diff, branch, commit or PR. Produces one interactive HTML page with background, intuition, a code walkthrough and a quiz. Make sure to use it for requests like "explain this PR in HTML", "explain this diff", "help me understand what this branch changes" or "explain this commit in depth", even if they never say "HTML".'
 ---
 
 # Explain Diff
