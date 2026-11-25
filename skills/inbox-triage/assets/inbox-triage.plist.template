@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Weekly inbox-triage run: Fridays at 17:00.
+  Fill the placeholders (absolute paths only) and install the result into
+  ~/Library/LaunchAgents/; launchd reloads user jobs at login only from there.
+  A run missed while the Mac sleeps starts once on wake, even on a later day;
+  one missed while it is off is not made up.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>__LABEL__</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__RUNNER__</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>INBOX_TRIAGE_VAULT</key>
+    <string>__VAULT__</string>
+    <key>INBOX_TRIAGE_CLAUDE</key>
+    <string>__CLAUDE__</string>
+    <key>INBOX_TRIAGE_LOG</key>
+    <string>__LOG__</string>
+    <key>PATH</key>
+    <string>__CLAUDE_DIR__:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key>
+    <integer>5</integer>
+    <key>Hour</key>
+    <integer>17</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>__LOG__</string>
+  <key>StandardErrorPath</key>
+  <string>__LOG__</string>
+</dict>
+</plist>

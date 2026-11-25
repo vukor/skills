@@ -18,6 +18,7 @@ npx skills add vukor/skills --skill opencode-permissions --global
 npx skills add vukor/skills --skill opencode-session-finder --global
 npx skills add vukor/skills --skill opencode-session-manager --global
 npx skills add vukor/skills --skill improve-skills --global
+npx skills add vukor/skills --skill inbox-triage --global
 
 # Preview what is available without installing
 npx skills add vukor/skills --list
@@ -78,6 +79,16 @@ Trigger phrases: "backup session ses_...", "restore session from backup", "migra
 Reviews past Claude Code session transcripts for feedback on the skills used in them (corrections, interrupts, failed steps, missing instructions) and proposes minimal old-to-new diffs, one skill at a time. Nothing is written until the user approves each diff. A single explicit correction is enough; other signals must recur across sessions first. User-invoked only: run `/improve-skills`, `/improve-skills <skill-name>`, `/improve-skills --since YYYY-MM-DD` or `/improve-skills help`.
 
 **Requirements:** `python3` on PATH. Reads `~/.claude/projects`; keeps its state in `~/.claude/improve-skills/`.
+
+### inbox-triage
+
+Turns everything pasted into one scratch note in an Obsidian vault (`!Inbox/inbox.md`: links, sentences, half-formed ideas, no format) into one note per item with a review (pros, cons, comparison with the skills and plugins already installed) and a runbook for trying it, blockers first. Each item is replaced by a link to its note; a page that does not open stays marked and is retried next run. Notes are written in Russian. It reads pages and writes only inside `!Inbox/`; it installs and runs nothing.
+
+Trigger phrases: "triage my inbox", "go through my inbox", "I dropped some links into the inbox", `/inbox-triage`
+
+**Weekly run (optional, macOS):** `scripts/friday-run.sh` runs the skill headless with no shell, no user settings or MCP servers, and file access limited to the inbox, installed skills and the plugin cache. `assets/inbox-triage.plist.template` schedules it for Fridays at 17:00: fill in its placeholders with absolute paths, save it to `~/Library/LaunchAgents/`, and load it with `launchctl bootstrap gui/$(id -u) <plist>`. Runs are logged to `~/Library/Logs/inbox-triage.log` by default.
+
+**Requirements:** Claude Code logged in. The weekly run needs macOS and the Mac awake and logged in at the scheduled time.
 
 ## Repository layout
 

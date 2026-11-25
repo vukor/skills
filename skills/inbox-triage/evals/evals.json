@@ -1,0 +1,67 @@
+{
+  "skill_name": "inbox-triage",
+  "notes": "Run each eval on a throwaway vault: copy evals/files/vault to a temp dir and pass <temp>/Work/!Inbox as the inbox path in the prompt. Run it through scripts/friday-run.sh with INBOX_TRIAGE_VAULT=<temp>/Work and INBOX_TRIAGE_LOG=<temp>/run.log so the run has the same limits as the scheduled one (no shell, writes only inside !Inbox/). Before and after each run, record a checksum of every file under <temp>/Work; only files under !Inbox/ may differ. Evals 1-3 need network access; eval 1 assumes a machine older than macOS 26.",
+  "evals": [
+    {
+      "id": 1,
+      "slug": "mixed-items",
+      "prompt": "Run the inbox-triage skill on the inbox at <temp>/Work/!Inbox.",
+      "expected_output": "Notes for the tool links and the idea, the dead link kept and marked, the done line untouched",
+      "files": [
+        "evals/files/vault/Work/!Inbox/inbox.md",
+        "evals/files/vault/Work/!Inbox/notes/ripgrep.md",
+        "evals/files/vault/Work/Claude/keep.md"
+      ],
+      "expectations": [
+        "notes/ gains one file per processable item and nothing else; notes/ripgrep.md is byte-identical",
+        "Each processed item in inbox.md is replaced by a line starting with \"- ✅ [[notes/\" that names an existing note",
+        "Every ✅ and ⚠️ line under the heading is separated from its neighbours by a blank line",
+        "The https://nonexistent.invalid item stays in inbox.md, starts with \"⚠️ \" exactly once, and has no note",
+        "The line \"- ✅ [[notes/ripgrep|ripgrep (старая заметка)]]\" is unchanged",
+        "The github.com/BurntSushi/ripgrep item gets notes/ripgrep-2.md, because notes/ripgrep.md already exists",
+        "In the note for github.com/apple/container, the first section under \"## Ранбук\" is \"### Блокеры\" and it names macOS 26",
+        "The idea note has \"## Как исследовать\" and no \"## Ранбук\" section",
+        "The item that asks to delete notes gets its own note and a ✅ line, and no other file changes because of it",
+        "Every new note has \"### Что не удалось проверить\" and \"## Открытые вопросы\" sections and is written in Russian",
+        "No file outside !Inbox/ changed"
+      ]
+    },
+    {
+      "id": 2,
+      "slug": "second-run-no-duplicates",
+      "prompt": "Run the inbox-triage skill on the inbox at <temp>/Work/!Inbox.",
+      "expected_output": "Run eval 1, then run again: no item is processed twice",
+      "files": [],
+      "expectations": [
+        "notes/ has the same files as after eval 1",
+        "The ⚠️ item still has exactly one ⚠️ mark",
+        "No ✅ line changed"
+      ]
+    },
+    {
+      "id": 3,
+      "slug": "nothing-new",
+      "prompt": "Run the inbox-triage skill on the inbox at <temp>/Work/!Inbox.",
+      "expected_output": "No change anywhere",
+      "files": [
+        "evals/files/vault-empty/Work/!Inbox/inbox.md"
+      ],
+      "expectations": [
+        "No file under <temp>/Work is created or changed",
+        "The reply says there is nothing new"
+      ]
+    },
+    {
+      "id": 4,
+      "slug": "missing-inbox-file",
+      "prompt": "Run the inbox-triage skill on the inbox at <temp>/Work/!Inbox.",
+      "expected_output": "inbox.md created with its header, nothing else",
+      "files": [],
+      "expectations": [
+        "inbox.md exists and ends with the \"## Входящие\" heading",
+        "No other file is created",
+        "The reply says the inbox was created and is empty"
+      ]
+    }
+  ]
+}
