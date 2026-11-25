@@ -31,12 +31,27 @@ CORRECTION = re.compile(
     r"\bthat'?s not\b|\bincorrect\b|\bmissed\b|\byou forgot\b|\bnever\b|\balways\b|\bfrom now on\b|\bremember\b|"
     r"^\s*нет\b|не так|неправильн|неверн|зачем|почему ты|опять|снова|стоп|не надо|не нужно|верни|откат|"
     r"я же|должен был|вместо|забыл|всегда|никогда|впредь|запомни)")
-EXPLICIT = re.compile(r"(?i)(\bskill\b|skill\.md|скилл|навык|from now on|remember|запомни|впредь|next time|в следующий раз)")
+# Standing-change phrasing. A bare "skill" is not enough: task messages and quoted errors mention skills all the time.
+EXPLICIT = re.compile(
+    r"(?i)(from now on|remember (this|that|to)|next time|"
+    r"\b(always|never)\s+(use|do|run|ask|write|put|add|include|start|create|check|show|keep|commit|push|call|load)\b|"
+    r"(the|this|that|your) skill (should|must|is wrong|is outdated|is missing|keeps|always|never|doesn'?t|does not)|"
+    r"(fix|update|change|improve) (the|this|that) skill|skill\.md|"
+    r"запомни|впредь|в следующий раз|(всегда|никогда) (используй|делай|пиши|спрашивай|добавляй)|скилл (должен|неправ|не должен))")
+# Quoted material inside a human message (annotations, code, pasted errors) is not the user's own words.
+QUOTED = re.compile(r'(?s)```.*?```|Comment on: ".*?"(?=\s*(>|\n|$))|"[^"\n]{40,}"|^\s*>.*$', re.M)
 AGENT_NOTE = re.compile(
     r"(?i)(the skill (says|doesn'?t|does not|is missing|lacks|assumes|expects)|skill'?s (instructions?|step)|"
     r"not covered by the skill|skill (is )?(outdated|wrong|stale)|workaround|the documented (step|command) (fails|failed))")
 USE_SKILL = re.compile(r"(?i)^\s*(please\s+)?(use|run|load|invoke)\s+(the\s+)?\S+\s+skill\b")
 INTERRUPT = "[Request interrupted by user"
+# A non-zero exit with no error words is usually grep/diff "no match" or a test run that passed with warnings.
+ERROR_WORDS = re.compile(r"(?i)(\berror\b|\bfatal\b|\bfailed\b|\bfailure\b|traceback|exception\b|not found|no such file|"
+                         r"permission denied|\binvalid\b|\bcannot\b|\bunable to\b|refused|timed out|\bpanic\b)")
+PASSED = re.compile(r"(?i)(\bOK\b(?! \(fail)|\d+ passed|all tests pass|0 failed)")
+# Harness protocol errors are the agent's own slips, never skill content.
+HARNESS_NOISE = ("File has not been read yet", "cannot be used with Skill tool due to disable-model-invocation",
+                 "File has been modified since read")
 REJECTED = ("doesn't want to proceed", "user rejected", "was rejected", "permission denied by user")
 SECRET = re.compile(
     r"(sk-[A-Za-z0-9_-]{16,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|xox[abpr]-[A-Za-z0-9-]{10,}|"
@@ -45,6 +60,21 @@ NOISE_PREFIX = ("<command-", "<local-command", "<bash-", "<task-notification", "
 CMD_NAME = re.compile(r"<command-name>/?([^<\s]+)</command-name>")
 CMD_ARGS = re.compile(r"<command-args>(.*?)</command-args>", re.S)
 BASE_DIR = re.compile(r"^Base directory for this skill: (\S+)")
+
+
+def own_words(text):
+    """The human's own words: quoted selections, code blocks and pasted output removed."""
+    return QUOTED.sub(" ", text)
+
+
+def is_noise_error(t):
+    if any(n in t for n in HARNESS_NOISE):
+        return True
+    head = t[:40]
+    tail = t[-400:]  # error messages sit at the end; earlier output is often file content that merely mentions errors
+    if head.startswith("Exit code 1") and (PASSED.search(tail) or not ERROR_WORDS.search(tail)):
+        return True
+    return False
 
 
 def redact(s):
@@ -149,6 +179,27 @@ def ownership(skill_dir, name):
     if g and tracked(g, os.path.join(real, "SKILL.md")):
         return "editable-git:" + g
     return "editable"
+
+
+def broken_links(name, cwd=None):
+    """Skill-root entries for name that are symlinks to a missing target."""
+    bare = name.split(":")[-1]
+    out = []
+    for r in skill_roots(cwd):
+        p = os.path.join(r, bare)
+        if os.path.islink(p) and not os.path.exists(p):
+            out.append((p, os.readlink(p)))
+    return out
+
+
+def known_skill_names(cwd=None):
+    names = set()
+    for r in skill_roots(cwd):
+        try:
+            names.update(e for e in os.listdir(r) if e != "synced" and len(e) > 3)
+        except OSError:
+            pass
+    return names
 
 
 def resolve_skill(name, hint=None, cwd=None):
@@ -313,15 +364,22 @@ def analyse(path, args):
             elif kind == "human":
                 humans += 1
                 t = p["text"]
-                if CORRECTION.search(t) and not USE_SKILL.match(t):
-                    named = EXPLICIT.search(t) or name.split(":")[-1] in t
-                    k = "explicit" if named and not USE_SKILL.match(t) else "correction"
-                    add(rec, idx, ets, k, t, last_asst, args)
+                own = own_words(t)
+                if CORRECTION.search(own) and not USE_SKILL.match(own):
+                    bare = name.split(":")[-1]
+                    others = [o for o in args.known_skills if o != bare and re.search(r"(?<![\w-])%s(?![\w-])" % re.escape(o), own)]
+                    named = re.search(r"(?<![\w-])%s(?![\w-])" % re.escape(bare), own)
+                    # explicit = standing-change phrasing or this skill's name; naming only another skill points elsewhere
+                    k = "explicit" if (named or (EXPLICIT.search(own) and not others)) else "correction"
+                    note = " [names: %s]" % ", ".join(others[:3]) if others and not named else ""
+                    add(rec, idx, ets, k, t + note, last_asst, args)
             elif kind in ("interrupt", "rejected"):
                 add(rec, idx, ets, kind, p.get("text", "interrupted"), last_asst, args)
             elif kind == "denied" and not args.denials:
                 continue
             elif kind in ("tool_error", "denied"):
+                if kind == "tool_error" and not args.all_errors and is_noise_error(p["text"]):
+                    continue
                 if sum(1 for s in rec["signals"] if s["kind"] == "tool_error") < args.max_errors:
                     add(rec, idx, ets, kind, p["text"], "", args)
             elif kind == "edit" and p.get("path"):
@@ -379,10 +437,16 @@ def _live_filter(args, paths):
 
 def collect(args):
     st = load_state()
+    args.known_skills = known_skill_names()
     paths = select_sessions(args, st)
     results = []
+    args.started_before = set()
+    since = dt.datetime.fromisoformat(args.since).replace(tzinfo=dt.timezone.utc) if getattr(args, "since", None) else None
     for p in paths:
-        sid, _, recs = analyse(p, args)
+        sid, events, recs = analyse(p, args)
+        start = next((iso(e[1]) for e in events if e[1]), None)
+        if since and start and start < since:
+            args.started_before.add(sid)
         for r in recs.values():
             r["file"] = p
             results.append(r)
@@ -398,6 +462,9 @@ def cmd_scan(args):
     for r in results:
         by_skill.setdefault(r["skill"], []).append(r)
     print("sessions scanned: %d   sessions with skills: %d" % (len(paths), len({r['session'] for r in results})))
+    if args.started_before:
+        print("note: --since selects by last modification; %d of these sessions started before %s and were resumed later"
+              % (len(args.started_before), args.since))
     print("%-28s %4s %4s  %s" % ("skill", "sess", "sig", "signal kinds (sessions with any signal)"))
     for name, rs in sorted(by_skill.items(), key=lambda kv: -sum(len(r["signals"]) for r in kv[1])):
         kinds = {}
@@ -423,8 +490,9 @@ def cmd_excerpts(args):
         print("## %s  (%d sessions with signals)" % (name, len(rs)))
         print("dir: %s" % (d or "?"))
         for r in sorted(rs, key=lambda r: r["first_ts"] or ""):
-            print("\n### session %s  %s  via=%s  cwd=%s" % (
-                r["session"], (r["first_ts"] or "")[:10], ",".join(r["how"]), r["cwd"]))
+            print("\n### session %s  %s%s  via=%s  cwd=%s" % (
+                r["session"], (r["first_ts"] or "")[:10],
+                " (started before --since)" if r["session"] in args.started_before else "", ",".join(r["how"]), r["cwd"]))
             for s in r["signals"]:
                 print("- [%s] #%s %s" % (s["kind"], s["idx"], s["text"]))
                 if s["before"]:
@@ -452,8 +520,11 @@ def cmd_context(args):
 
 def cmd_where(args):
     hits = resolve_skill(args.name, cwd=args.cwd)
+    for link, target in broken_links(args.name, args.cwd):
+        print("%s\t%s\tbroken-link (target missing: fix the link or check out the branch that has it)" % (link, target))
     if not hits:
-        print("not found: %s" % args.name)
+        if not broken_links(args.name, args.cwd):
+            print("not found: %s" % args.name)
         return 1
     for h in hits:
         print("%s\t%s\t%s" % (h, os.path.realpath(h), ownership(h, args.name.split(":")[-1])))
@@ -497,9 +568,17 @@ def cmd_mark(args):
 
 
 def cmd_log(args):
+    known = [os.path.basename(p)[:-6] for p in glob.glob(os.path.join(args.projects, "*", "*.jsonl"))]
+    sessions = []
+    for s in args.sessions or []:
+        m = [k for k in known if k == s] or [k for k in known if k.startswith(s)]
+        if len(m) != 1:
+            print("unknown or ambiguous session id: %s (%d matches); nothing logged" % (s, len(m)), file=sys.stderr)
+            return 2
+        sessions.append(m[0])  # store full ids so recurrence counts match across runs
     os.makedirs(STATE_DIR, exist_ok=True)
     rec = {"ts": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "skill": args.skill,
-           "key": args.key, "decision": args.decision, "sessions": args.sessions or [],
+           "key": args.key, "decision": args.decision, "sessions": sessions,
            "evidence": [redact(e)[:200] for e in (args.evidence or [])], "note": redact(args.note or "")[:300]}
     with open(state_path("decisions.jsonl"), "a") as f:
         f.write(json.dumps(rec, ensure_ascii=False) + "\n")
@@ -531,6 +610,8 @@ def main():
         s.add_argument("--chars", type=int, default=320)
         s.add_argument("--max-errors", type=int, default=3)
         s.add_argument("--denials", action="store_true", help="include permission-classifier denials (usually noise)")
+        s.add_argument("--all-errors", action="store_true",
+                       help="keep tool errors the noise filter drops (exit 1 with no error words, harness slips)")
         s.add_argument("--projects", default=PROJECTS)
         s.add_argument("--json", action="store_true")
         s.add_argument("--verbose", action="store_true", help="excerpts: include skills with no signals")
@@ -548,6 +629,7 @@ def main():
     lg.add_argument("--decision", required=True,
                     choices=["pending", "discard", "skip", "patch", "merge", "create", "applied", "proposed"])
     lg.add_argument("--sessions", nargs="*"); lg.add_argument("--evidence", action="append"); lg.add_argument("--note")
+    lg.add_argument("--projects", default=PROJECTS)
     b = sub.add_parser("backup"); b.add_argument("skill"); b.add_argument("path")
     args = ap.parse_args()
     return {"scan": cmd_scan, "excerpts": cmd_excerpts, "context": cmd_context, "where": cmd_where, "history": cmd_history,

@@ -30,7 +30,16 @@ Call the Skill tool with `writing-for-agents`. Every diff you draft follows it: 
 
 ### 2. Scope and scan
 
-Map the arguments to flags: a skill name → `--skill <name>`; a date → `--since <date>`; a session id → `--session <id>`. No arguments → the default scope: sessions not yet marked processed (first run: the last 14 days).
+When the argument is `help`, `-h` or `--help`, print the usage below and stop; nothing is scanned or logged.
+
+```text
+/improve-skills                      sessions not yet reviewed (first run: last 14 days)
+/improve-skills <skill-name>         one skill
+/improve-skills --since YYYY-MM-DD   sessions modified since a date, ignoring review state
+/improve-skills --session <id>       one session (id or unique prefix)
+```
+
+Otherwise map the arguments to flags: a skill name → `--skill <name>`; a date → `--since <date>`; a session id → `--session <id>`. No arguments → the default scope: sessions not yet marked processed (first run: the last 14 days). Check a skill-name argument with `where <name>` first: `not found` or `broken-link` means stop and tell the user, since a scan would silently return nothing.
 
 ```sh
 python3 -I scripts/skill_feedback.py scan [flags]

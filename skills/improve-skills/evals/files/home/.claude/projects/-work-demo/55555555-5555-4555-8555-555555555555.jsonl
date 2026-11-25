@@ -1,0 +1,3 @@
+{"type":"user","timestamp":"2026-01-10T10:01:00Z","cwd":"/work/demo","message":{"role":"user","content":"Base directory for this skill: HOME/.claude/skills/demo-notes\n\nWrite release notes..."}}
+{"type":"assistant","timestamp":"2026-01-10T10:02:00Z","cwd":"/work/demo","message":{"role":"assistant","content":[{"type":"text","text":"Notes written to NOTES.md."}]}}
+{"type":"user","timestamp":"2026-01-10T10:03:00Z","cwd":"/work/demo","message":{"role":"user","content":"no, put them in CHANGELOG.md instead"}}

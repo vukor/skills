@@ -12,20 +12,24 @@ A skill is attributed to a session when any of these appears in the main transcr
 
 A skill's **window** runs from its load to the next skill or slash command, capped at `--turns` human messages (default 3). Signals in the window are attributed to it. Sessions where `improve-skills` itself ran count only for `improve-skills`, since a review reads many SKILL.md files without using them.
 
+`--since` selects by last modification, so a session started earlier and resumed later is included; `scan` prints how many, and `excerpts` tags them `(started before --since)`.
+
 Sessions modified in the last 10 minutes are skipped (`--include-live` overrides): they are still being written. Subagent transcripts (`<session>/subagents/`) are read only with `--subagents`; they have no human turns, so they add only tool errors.
 
 ## Signal kinds
 
 | kind | detected by | strong when | usually noise when |
 |---|---|---|---|
-| `explicit` | human message with a correction word **and** the skill's name, "skill"/"скилл", "remember", "from now on", "next time" | the user names the skill or asks for a standing change | the user is giving a new task that names a skill (messages like "use the X skill ..." are filtered out) |
+| `explicit` | human message with a correction word **and** either this skill's name or standing-change phrasing ("from now on", "next time", "remember to", "always/never" + a verb, "the skill should ...") | the user names the skill or asks for a standing change | the user is giving a new task that names a skill (messages like "use the X skill ..." are filtered out); a message that names only another skill is downgraded to `correction` and tagged `[names: ...]` |
 | `correction` | human message with a correction word (no, wrong, don't, instead, again, why did you, нет, не так, зачем, опять, вместо ...) | the message rejects or redoes what the skill told the agent to do; read `after assistant` to see what was rejected | the words are part of a fresh request ("don't run plan, just inventory") |
 | `interrupt` | `[Request interrupted by user` | the next human turn redirects the approach | the user stopped a slow command or changed topic |
 | `rejected` | a tool result saying the user declined the call | the skill's step proposes a call the user keeps declining | one-off caution |
-| `tool_error` | `is_error` tool results (first 3 per window) | a command the skill prescribes fails the same way in 2+ sessions | environment state: missing binary, auth, network, a non-zero exit from a later command in a pipeline |
+| `tool_error` | `is_error` tool results (first 3 per window), minus noise: `Exit code 1` whose last 400 chars show no error words or a passing test run, and harness slips ("File has not been read yet", user-only skills); `--all-errors` keeps them | a command the skill prescribes fails the same way in 2+ sessions | environment state: missing binary, auth, network; exploratory probes (`ls`/`cat` of a file that may not exist) |
 | `denied` | permission-classifier refusals (`--denials` only) | the skill prescribes a command the permission config forbids | almost always: this is policy, not skill content |
 | `rework` | the same file edited 3+ times in the window | the skill's output format needed repeated fixing | normal iteration on code |
 | `agent_note` | assistant text like "the skill says/doesn't/is missing", "workaround" | the agent improvised around a gap or a wrong step | the agent quoting the skill neutrally |
+
+Correction and explicit patterns run on the user's **own words**: quoted selections (`Comment on: "..."`), fenced code, `>` quotes and long quoted strings are removed first, so a pasted error that says "do not" or "skill" is not read as feedback.
 
 An explicit correction is the only kind that can justify a patch from one session; every other kind needs recurrence (see [decisions.md](decisions.md)).
 

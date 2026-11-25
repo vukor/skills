@@ -44,7 +44,9 @@ Rules for the diff:
 | `propose-only:plugin` | under `~/.claude/plugins/` | same; a plugin update would overwrite a local edit |
 | `propose-only:package` | installed from a package (e.g. a uv tool's site-packages) | same |
 
-When `where` returns several paths for one name, the one in the excerpt's `dir` is the one that was used; propose against that.
+When `where` returns several paths for one name, the one in the excerpt's `dir` is the one that was used; propose against that. A `broken-link` line means the install symlink points at a missing target (often a skill on an unmerged branch): report it and propose nothing for that skill.
+
+`log` rejects a session id that matches no transcript, or a prefix that matches several, and stores full ids; fix the id and log again.
 
 ## Applying
 
