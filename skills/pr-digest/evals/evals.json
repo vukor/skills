@@ -1,0 +1,56 @@
+{
+  "skill_name": "pr-digest",
+  "evals": [
+    {
+      "id": 1,
+      "slug": "triage-only",
+      "prompt": "can you help me review this PR before I approve it? https://github.com/acme/billing-service/pull/7",
+      "expected_output": "Step 0 only: a three-line triage (size, surface, reversibility) and a recommended path, then a stop that waits for the user. No brief yet.",
+      "files": [
+        "evals/files/CLAUDE.md"
+      ],
+      "expectations": [
+        "The reply contains a triage covering size, surface and reversibility",
+        "The reply recommends one path: Short, Full or Stop",
+        "No brief.md file is written",
+        "No HTML explanation is written",
+        "The reply ends by waiting for the user instead of starting Step 1",
+        "The reply is written in the language evals/files/CLAUDE.md names for this skill (Russian)"
+      ]
+    },
+    {
+      "id": 2,
+      "slug": "brief-and-explain-handoff",
+      "prompt": "Review https://github.com/acme/billing-service/pull/7 with me. (You already showed me the triage and I picked the Full path.) next",
+      "expected_output": "Step 1 brief in brief.md within the line cap, then a Step 1b subagent prompt for explain-diff-html that passes the diff range, the reading map, the HTML path and do-not-open, then Step 2 checks.",
+      "files": [],
+      "expectations": [
+        "brief.md is written under pr-reviews/<repo-name>/pr-7/",
+        "brief.md has at most 25 non-empty lines outside the reading map",
+        "brief.md contains a reading map tagging files read closely / skim / skip",
+        "A Step 1b subagent prompt is written that names the explain-diff-html skill",
+        "The subagent prompt includes the diff range or base branch",
+        "The subagent prompt includes the reading map",
+        "The subagent prompt includes an output path ending in pr-7/YYYY-MM-DD-explain.html",
+        "The subagent prompt tells the subagent not to open the file",
+        "No open or xdg-open command is run",
+        "The subagent prompt names the language to write in"
+      ]
+    },
+    {
+      "id": 3,
+      "slug": "plannotator-missing",
+      "prompt": "review PR https://github.com/acme/billing-service/pull/7 for me. heads up: plannotator isn't installed on this machine",
+      "expected_output": "pr-digest names Plannotator as a missing requirement, says where to get it, and asks whether to continue without it before going on.",
+      "files": [
+        "evals/files/CLAUDE.md"
+      ],
+      "expectations": [
+        "The reply names Plannotator as missing",
+        "The reply says where to get Plannotator (a URL or install command)",
+        "The reply asks whether to continue without Plannotator",
+        "The reply is written in the language evals/files/CLAUDE.md names for this skill (Russian)"
+      ]
+    }
+  ]
+}

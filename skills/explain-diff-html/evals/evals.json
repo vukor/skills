@@ -1,0 +1,54 @@
+{
+  "skill_name": "explain-diff-html",
+  "evals": [
+    {
+      "id": 1,
+      "slug": "standalone-pr",
+      "prompt": "explain this PR to me in html, I want to really understand it: https://github.com/acme/billing-service/pull/6",
+      "expected_output": "One self-contained HTML page in the wiki under pr-reviews/<repo-name>/pr-6/, date-prefixed, with Background, Intuition, Code and a five-question interactive quiz, opened in the browser as the last step.",
+      "files": [
+        "evals/files/CLAUDE.md"
+      ],
+      "expectations": [
+        "The HTML file is under pr-reviews/<repo-name>/pr-6/ and named YYYY-MM-DD-explain.html",
+        "The HTML file is outside the repository's working directory",
+        "The page has Background, Intuition, Code and Quiz sections",
+        "The quiz has exactly five questions",
+        "Every <pre> or code block has white-space: pre or pre-wrap",
+        "The <html lang> attribute matches the language evals/files/CLAUDE.md names (ru)",
+        "The last command run is open (or xdg-open) on the HTML file",
+        "The final reply prints the full file path"
+      ]
+    },
+    {
+      "id": 2,
+      "slug": "called-by-skill",
+      "prompt": "Run the explain-diff-html skill for https://github.com/acme/billing-service/pull/6. Diff range: main...fix/invoice-rounding. Reading map: read closely src/invoices/rounding.py; skim docs/invoices.md; skip everything else. Output path: pr-reviews/billing-service/pr-6/YYYY-MM-DD-explain.html in the wiki. Language: Russian. Do not open the file; the caller opens it later.",
+      "expected_output": "The HTML is written at the given path, its Code section follows the reading map with extract_board.py first, and no open command is run.",
+      "files": [],
+      "expectations": [
+        "The HTML file is written at pr-reviews/billing-service/pr-6/YYYY-MM-DD-explain.html",
+        "No open or xdg-open command is run",
+        "In the Code section, the read-closely file appears before the skimmed file",
+        "The quiz has exactly five questions",
+        "Every <pre> or code block has white-space: pre or pre-wrap",
+        "The <html lang> attribute matches the language the caller passes"
+      ]
+    },
+    {
+      "id": 3,
+      "slug": "local-branch",
+      "prompt": "can you explain what my branch fix/invoice-rounding changes compared to main? html please",
+      "expected_output": "An HTML page saved under pr-reviews/<repo-name>/<branch-slug>/ (no pr-<number> folder), date-prefixed, with a five-question quiz, opened at the end.",
+      "files": [
+        "evals/files/CLAUDE.md"
+      ],
+      "expectations": [
+        "The HTML file is under pr-reviews/<repo-name>/<branch-slug>/ with no pr-<number> folder, named YYYY-MM-DD-explain.html",
+        "The quiz has exactly five questions",
+        "The <html lang> attribute matches the language evals/files/CLAUDE.md names (ru)",
+        "The last command run is open (or xdg-open) on the HTML file"
+      ]
+    }
+  ]
+}
